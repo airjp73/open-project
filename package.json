@@ -14,13 +14,25 @@
       "name": "index",
       "title": "Open Project",
       "description": "Open the specified project -- opening all relevant programs for it.",
-      "mode": "view"
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "projectFolder",
+          "description": "Folder to look in to find projects",
+          "type": "directory",
+          "required": true,
+          "label": "Project folder",
+          "title": "Project folder",
+          "multiple": true
+        }
+      ]
     }
   ],
   "dependencies": {
     "@raycast/api": "^1.60.1",
     "@raycast/utils": "^1.4.8",
-    "fuse.js": "^6.6.2"
+    "fuse.js": "^6.6.2",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^1.0.6",

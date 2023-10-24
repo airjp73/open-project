@@ -1,13 +1,14 @@
-import { ActionPanel, Action, List, open } from "@raycast/api";
-import * as os from "os";
+import { ActionPanel, Action, List, open, getPreferenceValues } from "@raycast/api";
 import { readdir } from "fs/promises";
 import * as fs from "fs";
 import * as path from "path";
 import { useFrecencySorting, usePromise } from "@raycast/utils";
+import { z } from "zod";
 
-const excludeFiles = /node_modules/;
-const home = os.homedir();
-const folders = [`${home}/dev`, `${home}/dev/raycast`];
+const Prefs = z.object({
+  projectFolder: z.string(),
+});
+const { projectFolder } = Prefs.parse(getPreferenceValues());
 
 type Project = {
   id: string;
@@ -25,7 +26,6 @@ const runProject = async (dir: string) => {
 const getProjectsFromDir = async (dir: string): Promise<Project[]> => {
   const projectPaths = await readdir(dir);
   return projectPaths
-    .filter((projectPath) => !excludeFiles.test(projectPath))
     .filter((projectPath) => fs.statSync(path.join(dir, projectPath)).isDirectory())
     .map((projectPath) => {
       const fullPath = path.join(dir, projectPath);
@@ -40,8 +40,7 @@ const getProjectsFromDir = async (dir: string): Promise<Project[]> => {
 
 export default function Command() {
   const { data, isLoading } = usePromise(async () => {
-    const projects = await Promise.all(folders.map(getProjectsFromDir));
-    return projects.flat();
+    return getProjectsFromDir(projectFolder);
   });
   const { data: sortedData, visitItem } = useFrecencySorting(data ?? []);
 
