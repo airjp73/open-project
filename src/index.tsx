@@ -1,4 +1,4 @@
-import { ActionPanel, Action, List, open, getPreferenceValues } from "@raycast/api";
+import { ActionPanel, Action, List, open, getPreferenceValues, popToRoot } from "@raycast/api";
 import { readdir } from "fs/promises";
 import * as fs from "fs";
 import * as path from "path";
@@ -61,6 +61,7 @@ export default function Command() {
                     title="Open Project"
                     onAction={async () => {
                       await visitItem(item);
+                      popToRoot();
                       runProject(item.value);
                     }}
                   />
