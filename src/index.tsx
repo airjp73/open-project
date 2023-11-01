@@ -1,8 +1,8 @@
-import { ActionPanel, Action, List, open, getPreferenceValues, popToRoot } from "@raycast/api";
+import { ActionPanel, Action, List, open, getPreferenceValues, closeMainWindow, PopToRootType } from "@raycast/api";
 import { readdir } from "fs/promises";
 import * as fs from "fs";
 import * as path from "path";
-import { useFrecencySorting, usePromise } from "@raycast/utils";
+import { runAppleScript, useFrecencySorting, usePromise } from "@raycast/utils";
 import { z } from "zod";
 
 const Prefs = z.object({
@@ -18,9 +18,18 @@ type Project = {
 };
 
 const runProject = async (dir: string) => {
-  open(dir, "com.microsoft.VSCode");
-  open(dir, "com.sublimemerge");
-  open(dir, "dev.warp.Warp-Stable");
+  const activate = (app: string) =>
+    runAppleScript(`
+      tell application "${app}"
+        activate
+      end tell
+    `);
+  await Promise.all([
+    open(dir, "com.microsoft.VSCode"),
+    open(dir, "com.sublimemerge"),
+    open(dir, "dev.warp.Warp-Stable"),
+    activate("Arc"),
+  ]);
 };
 
 const getProjectsFromDir = async (dir: string): Promise<Project[]> => {
@@ -61,8 +70,8 @@ export default function Command() {
                     title="Open Project"
                     onAction={async () => {
                       await visitItem(item);
-                      popToRoot();
-                      runProject(item.value);
+                      await runProject(item.value);
+                      closeMainWindow({ popToRootType: PopToRootType.Immediate });
                     }}
                   />
                 </ActionPanel.Section>

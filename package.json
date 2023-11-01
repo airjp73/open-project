@@ -26,6 +26,12 @@
           "multiple": true
         }
       ]
+    },
+    {
+      "name": "arrange",
+      "title": "Arrange project windows",
+      "description": "Moves all project windows to the correct positions.",
+      "mode": "no-view"
     }
   ],
   "dependencies": {
