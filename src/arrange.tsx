@@ -5,7 +5,7 @@ import { z } from "zod";
 const Numeric = z.coerce.number();
 
 export default async function arrange() {
-  const count = await runAppleScript(`
+  const numDesktops = await runAppleScript(`
     set d to 0
     tell application "System Events"
       set d to count of desktops
@@ -48,7 +48,6 @@ export default async function arrange() {
   };
 
   const moveWindow = async ({ app, process, singleMonitorCommand, multiMonitorCommand, monitor }: WindowMoveArgs) => {
-    const numDesktops = await count;
     await activate(app);
     const command = numDesktops === 1 ? singleMonitorCommand : multiMonitorCommand;
     if (numDesktops > 1) {
