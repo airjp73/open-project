@@ -39,25 +39,52 @@ export default async function arrange() {
     return xPos < 0;
   };
 
-  const moveWindow = async (
-    app: string,
-    process: string,
-    singleMonitorCommands: string[],
-    multiMonitorCommands: string[],
-  ) => {
-    const numDesktops = await count;
-    await activate(app);
-    const commands = numDesktops === 1 ? singleMonitorCommands : multiMonitorCommands;
-    for (const command of commands) {
-      if (command === "previous-display" && (await isOnLeftDisplay(process))) continue;
-      if (command === "next-display" && !(await isOnLeftDisplay(process))) continue;
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      await windowCommand(command);
-    }
+  type WindowMoveArgs = {
+    app: string;
+    process: string;
+    singleMonitorCommand: string;
+    multiMonitorCommand: string;
+    monitor: "left" | "right";
   };
 
-  await moveWindow("Sublime Merge", "Sublime Merge", ["left-half"], ["previous-display", "maximize"]);
-  await moveWindow("Warp", "Warp", ["right-half"], ["next-display", "first-fourth"]);
-  await moveWindow("Arc", "Arc", ["right-half"], ["next-display", "last-fourth"]);
-  await moveWindow("Visual Studio Code", "Code", ["left-half"], ["next-display", "center-half"]);
+  const moveWindow = async ({ app, process, singleMonitorCommand, multiMonitorCommand, monitor }: WindowMoveArgs) => {
+    const numDesktops = await count;
+    await activate(app);
+    const command = numDesktops === 1 ? singleMonitorCommand : multiMonitorCommand;
+    if (numDesktops > 1) {
+      const isLeft = await isOnLeftDisplay(process);
+      if ((monitor === "right" && isLeft) || (monitor === "left" && !isLeft)) return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await windowCommand(command);
+  };
+
+  await moveWindow({
+    app: "Sublime Merge",
+    process: "Sublime Merge",
+    singleMonitorCommand: "left-half",
+    multiMonitorCommand: "maximize",
+    monitor: "left",
+  });
+  await moveWindow({
+    app: "Warp",
+    process: "Warp",
+    singleMonitorCommand: "right-half",
+    multiMonitorCommand: "first-fourth",
+    monitor: "right",
+  });
+  await moveWindow({
+    app: "Arc",
+    process: "Arc",
+    singleMonitorCommand: "right-half",
+    multiMonitorCommand: "last-fourth",
+    monitor: "right",
+  });
+  await moveWindow({
+    app: "Visual Studio Code",
+    process: "Code",
+    singleMonitorCommand: "left-half",
+    multiMonitorCommand: "center-half",
+    monitor: "left",
+  });
 }

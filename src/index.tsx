@@ -48,9 +48,7 @@ const getProjectsFromDir = async (dir: string): Promise<Project[]> => {
 };
 
 export default function Command() {
-  const { data, isLoading } = usePromise(async () => {
-    return getProjectsFromDir(projectFolder);
-  });
+  const { data, isLoading } = usePromise(() => getProjectsFromDir(projectFolder));
   const { data: sortedData, visitItem } = useFrecencySorting(data ?? []);
 
   return (
