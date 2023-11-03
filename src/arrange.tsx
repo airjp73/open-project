@@ -30,12 +30,12 @@ export default async function arrange() {
 
   const isOnLeftDisplay = async (process: string) => {
     const [xPos] = await runAppleScript(`
-          tell application "System Events"
-            tell process "${process}"
-              return value of attribute "AXPosition" of window 1
-            end tell
-          end tell
-        `).then((res) => res.split(",").map((num) => Numeric.parse(num)));
+      tell application "System Events"
+        tell process "${process}"
+          return value of attribute "AXPosition" of window 1
+        end tell
+      end tell
+    `).then((res) => res.split(",").map((num) => Numeric.parse(num)));
     return xPos < 0;
   };
 
@@ -47,15 +47,36 @@ export default async function arrange() {
     monitor: "left" | "right";
   };
 
-  const moveWindow = async ({ app, process, singleMonitorCommand, multiMonitorCommand, monitor }: WindowMoveArgs) => {
-    await activate(app);
-    const command = numDesktops === 1 ? singleMonitorCommand : multiMonitorCommand;
-    if (numDesktops > 1) {
-      const isLeft = await isOnLeftDisplay(process);
-      if ((monitor === "right" && isLeft) || (monitor === "left" && !isLeft)) return;
+  const forEachWindow = async (process: string, callback: () => Promise<void>) => {
+    let windowNum = 1;
+    let hasNext = true;
+    while (hasNext) {
+      const exists = await runAppleScript(`
+        tell application "System Events"
+          tell process "${process}"
+            perform action "AXRaise" of window ${windowNum}
+            return exists window ${windowNum + 1}
+          end tell
+        end tell
+      `);
+      hasNext = exists === "true";
+      windowNum++;
+      await callback();
     }
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    await windowCommand(command);
+  };
+
+  const moveWindow = async ({ app, process, singleMonitorCommand, multiMonitorCommand, monitor }: WindowMoveArgs) => {
+    const command = numDesktops === 1 ? singleMonitorCommand : multiMonitorCommand;
+    await activate(app);
+    await forEachWindow(process, async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      if (numDesktops > 1) {
+        const isLeft = await isOnLeftDisplay(process);
+        if ((monitor === "right" && !isLeft) || (monitor === "left" && isLeft)) return;
+        await windowCommand(monitor === "right" ? "next-display" : "previous-display");
+      }
+      await windowCommand(command);
+    });
   };
 
   await moveWindow({
@@ -84,6 +105,6 @@ export default async function arrange() {
     process: "Code",
     singleMonitorCommand: "left-half",
     multiMonitorCommand: "center-half",
-    monitor: "left",
+    monitor: "right",
   });
 }
