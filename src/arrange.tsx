@@ -72,8 +72,9 @@ export default async function arrange() {
       await new Promise((resolve) => setTimeout(resolve, 100));
       if (numDesktops > 1) {
         const isLeft = await isOnLeftDisplay(process);
-        if ((monitor === "right" && !isLeft) || (monitor === "left" && isLeft)) return;
-        await windowCommand(monitor === "right" ? "next-display" : "previous-display");
+        if ((monitor === "right" && isLeft) || (monitor === "left" && !isLeft)) {
+          await windowCommand(monitor === "right" ? "next-display" : "previous-display");
+        }
       }
       await windowCommand(command);
     });
