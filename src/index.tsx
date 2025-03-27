@@ -25,7 +25,8 @@ const runProject = async (dir: string) => {
       end tell
     `);
   await Promise.all([
-    open(dir, "com.microsoft.VSCode"),
+    // open(dir, "com.microsoft.VSCode"),
+    open(dir, "dev.zed.Zed"),
     open(dir, "com.sublimemerge"),
     open(dir, "dev.warp.Warp-Stable"),
     activate("Arc"),
