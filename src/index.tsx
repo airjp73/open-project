@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { runAppleScript, useFrecencySorting, usePromise } from "@raycast/utils";
 import { z } from "zod";
+import { exec, execSync } from "child_process";
 
 const Prefs = z.object({
   projectFolder: z.string(),
@@ -24,11 +25,14 @@ const runProject = async (dir: string) => {
         activate
       end tell
     `);
+
+  execSync(`/opt/homebrew/bin/wezterm cli spawn --cwd "${dir}"`);
+
   await Promise.all([
     // open(dir, "com.microsoft.VSCode"),
     open(dir, "dev.zed.Zed"),
     open(dir, "com.sublimemerge"),
-    open(dir, "dev.warp.Warp-Stable"),
+    // open(dir, "dev.warp.Warp-Stable"),
     activate("Arc"),
   ]);
 };
