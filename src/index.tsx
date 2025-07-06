@@ -39,10 +39,10 @@ const runProject = async (dir: string) => {
     `);
 
   // Doing this serially makes it more consistent what gets focused
-  await openWeztermTab(dir, path.basename(dir));
-  await openWeztermTab(dir, `${path.basename(dir)} helix`, "hx .");
   await open(dir, "com.sublimemerge");
   await activate("WezTerm");
+  await openWeztermTab(dir, path.basename(dir));
+  await openWeztermTab(dir, `${path.basename(dir)} helix`, "hx .");
 };
 
 const getProjectsFromDir = async (dir: string): Promise<Project[]> => {
