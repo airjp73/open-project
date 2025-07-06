@@ -4,7 +4,10 @@ import * as fs from "fs";
 import * as path from "path";
 import { runAppleScript, useFrecencySorting, usePromise } from "@raycast/utils";
 import { z } from "zod";
-import { exec, execSync } from "child_process";
+import * as childProcess from "child_process";
+import util from "util";
+
+const exec = util.promisify(childProcess.exec);
 
 const Prefs = z.object({
   projectFolder: z.string(),
@@ -18,6 +21,15 @@ type Project = {
   description: string;
 };
 
+const wezterm = "/opt/homebrew/bin/wezterm";
+
+const openWeztermTab = async (dir: string, tabName: string, command?: string) => {
+  const r = await exec(`${wezterm} cli spawn --cwd "${dir}"`);
+  const paneId = Number(r.stdout);
+  await exec(`${wezterm} cli set-tab-title --pane-id ${paneId} "${tabName}"`);
+  if (command) await exec(`${wezterm} cli send-text --pane-id ${paneId} "${command}\n" --no-paste`);
+};
+
 const runProject = async (dir: string) => {
   const activate = (app: string) =>
     runAppleScript(`
@@ -26,15 +38,11 @@ const runProject = async (dir: string) => {
       end tell
     `);
 
-  execSync(`/opt/homebrew/bin/wezterm cli spawn --cwd "${dir}"`);
-
-  await Promise.all([
-    // open(dir, "com.microsoft.VSCode"),
-    open(dir, "dev.zed.Zed"),
-    open(dir, "com.sublimemerge"),
-    // open(dir, "dev.warp.Warp-Stable"),
-    activate("Arc"),
-  ]);
+  // Doing this serially makes it more consistent what gets focused
+  await openWeztermTab(dir, path.basename(dir));
+  await openWeztermTab(dir, `${path.basename(dir)} helix`, "hx .");
+  await open(dir, "com.sublimemerge");
+  await activate("WezTerm");
 };
 
 const getProjectsFromDir = async (dir: string): Promise<Project[]> => {
