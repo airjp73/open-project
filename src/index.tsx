@@ -42,7 +42,8 @@ const runProject = async (dir: string) => {
   await open(dir, "com.sublimemerge");
   await activate("WezTerm");
   await openWeztermTab(dir, path.basename(dir));
-  await openWeztermTab(dir, `${path.basename(dir)} helix`, "hx .");
+  await open(dir, "com.microsoft.VSCode");
+  // await openWeztermTab(dir, `${path.basename(dir)} helix`, "hx .");
 };
 
 const getProjectsFromDir = async (dir: string): Promise<Project[]> => {
