@@ -23,8 +23,31 @@ type Project = {
 
 const wezterm = "/opt/homebrew/bin/wezterm";
 
+const waitForWeztermToBeOpen = async () => {
+  const isWeztermOpen = async () => {
+    const r = await exec(`${wezterm} cli list --format json`);
+    const result = JSON.parse(r.stdout);
+    console.log(result);
+    return result?.[0]?.pane_id ?? null;
+  };
+  const startTime = Date.now();
+  const endTime = startTime + 10000;
+  while (Date.now() < endTime) {
+    const paneId = await isWeztermOpen();
+    if (paneId != null) return paneId;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  return null;
+};
+
 const openWeztermTab = async (dir: string, tabName: string, command?: string) => {
-  const r = await exec(`${wezterm} cli spawn --cwd "${dir}"`);
+  const currentPaneId = await waitForWeztermToBeOpen();
+  if (currentPaneId == null) {
+    console.error("Wezterm is not open, unable to open tab");
+    return;
+  }
+
+  const r = await exec(`${wezterm} cli spawn --pane-id=${currentPaneId} --cwd "${dir}"`);
   const paneId = Number(r.stdout);
   await exec(`${wezterm} cli set-tab-title --pane-id ${paneId} "${tabName}"`);
   if (command) await exec(`${wezterm} cli send-text --pane-id ${paneId} "${command}\n" --no-paste`);
