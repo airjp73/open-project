@@ -22,6 +22,8 @@ type Project = {
 };
 
 const wezterm = "/opt/homebrew/bin/wezterm";
+const jj = "/opt/homebrew/bin/jj"
+const gg = "/opt/homebrew/bin/gg"
 
 const waitForWeztermToBeOpen = async () => {
   const isWeztermOpen = async () => {
@@ -53,6 +55,14 @@ const openWeztermTab = async (dir: string, tabName: string, command?: string) =>
   if (command) await exec(`${wezterm} cli send-text --pane-id ${paneId} "${command}\n" --no-paste`);
 };
 
+const openVcsGui = async (dir: string) => {
+  const isJjProject = await exec(`${jj} root > /dev/null 2>&1 && echo true || echo false`, {
+    cwd: dir
+  });
+  if (isJjProject.stdout.trim() === "true") void exec(`${gg} .`, { cwd: dir })
+  else await open(dir, "com.sublimemerge")
+}
+
 const runProject = async (dir: string) => {
   const activate = (app: string) =>
     runAppleScript(`
@@ -62,7 +72,8 @@ const runProject = async (dir: string) => {
     `);
 
   // Doing this serially makes it more consistent what gets focused
-  await open(dir, "com.sublimemerge");
+
+  await openVcsGui(dir)
   await activate("WezTerm");
   await openWeztermTab(dir, path.basename(dir));
   // await open(dir, "com.microsoft.VSCode");
